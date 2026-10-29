@@ -10,12 +10,31 @@ import {
 } from "@/lib/roberta";
 import { site, whatsappLink } from "@/lib/site";
 
-type Msg = { role: "bot" | "user"; text: string };
+type Msg = { role: "bot" | "user"; text: string; time: string };
 
 type Phase = "consent" | "chat" | "done";
 
+const TYPING_MS = 3000;
+
 function delay(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
+}
+
+function nowTime() {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+function TypingBubble() {
+  return (
+    <div className="flex justify-start">
+      <div className="wa-bubble-in flex items-center gap-1.5 px-3 py-3">
+        <span className="typing-dot" />
+        <span className="typing-dot" />
+        <span className="typing-dot" />
+      </div>
+    </div>
+  );
 }
 
 export function RobertaChat() {
@@ -32,7 +51,7 @@ export function RobertaChat() {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, phase, open]);
+  }, [messages, phase, open, busy]);
 
   useEffect(() => {
     if (!open) return;
@@ -46,15 +65,14 @@ export function RobertaChat() {
   async function pushBot(lines: string[]) {
     setBusy(true);
     for (const line of lines) {
-      await delay(450);
-      setMessages((m) => [...m, { role: "bot", text: line }]);
+      await delay(TYPING_MS);
+      setMessages((m) => [...m, { role: "bot", text: line, time: nowTime() }]);
     }
     setBusy(false);
   }
 
   async function startConversation() {
     await pushBot(robertaIntro);
-    await delay(300);
     await pushBot([robertaQuestions[0].message]);
   }
 
@@ -64,7 +82,10 @@ export function RobertaChat() {
     if (!current) return;
     if (current.required !== false && !value) return;
 
-    setMessages((m) => [...m, { role: "user", text: value || "—" }]);
+    setMessages((m) => [
+      ...m,
+      { role: "user", text: value || "—", time: nowTime() },
+    ]);
     setInput("");
     const nextAnswers = { ...answers, [current.id]: value || "—" };
     setAnswers(nextAnswers);
@@ -72,14 +93,10 @@ export function RobertaChat() {
     const nextIndex = qIndex + 1;
     if (nextIndex < robertaQuestions.length) {
       setQIndex(nextIndex);
-      setBusy(true);
-      await delay(500);
       await pushBot([robertaQuestions[nextIndex].message]);
       return;
     }
 
-    setBusy(true);
-    await delay(500);
     const nome = nextAnswers.nome?.split(" ")[0] || "";
     await pushBot(robertaClosing(nome));
 
@@ -96,11 +113,10 @@ export function RobertaChat() {
         body: JSON.stringify(payload),
       });
     } catch {
-      // Sheets virá depois; falha silenciosa na demo
+      // Sheets depois
     }
 
     setPhase("done");
-    setBusy(false);
   }
 
   function onSubmit(e: FormEvent) {
@@ -111,7 +127,6 @@ export function RobertaChat() {
 
   function resetAndClose() {
     closeChat();
-    // Reinicia o fluxo na próxima abertura
     window.setTimeout(() => {
       setPhase("consent");
       setMessages([]);
@@ -130,19 +145,19 @@ export function RobertaChat() {
   return (
     <>
       {bubble && !open && (
-        <div className="fixed bottom-28 right-4 z-40 max-w-[260px] sm:right-6">
-          <div className="relative gold-border bg-[#121216] px-4 py-3 shadow-2xl">
+        <div className="fixed bottom-[5.6rem] right-4 z-40 max-w-[200px] sm:right-6">
+          <div className="relative rounded-2xl border border-[var(--line)] bg-[#121216] px-2.5 py-2 shadow-2xl">
             <button
               type="button"
               aria-label="Fechar mensagem"
               onClick={() => setBubble(false)}
-              className="absolute right-2 top-2 text-muted/70 hover:text-foreground"
+              className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#1c1c22] text-xs text-muted hover:text-foreground"
             >
               ×
             </button>
-            <p className="pr-4 text-sm leading-relaxed text-foreground/90">
-              Olá, meu nome é Roberta, secretária do Dr. Carlos Mendes. Vou te
-              ajudar no que precisar.
+            <p className="pr-2 text-[10px] leading-snug text-foreground/90">
+              Olá! Eu sou a Roberta, secretária do Dr Carlos Mendes. Irei te
+              ajudar por aqui hoje.
             </p>
           </div>
         </div>
@@ -151,15 +166,20 @@ export function RobertaChat() {
       <button
         type="button"
         onClick={openChat}
-        className="fixed bottom-5 right-4 z-40 flex items-center gap-3 gold-border bg-[#121216] py-2 pl-2 pr-4 shadow-2xl transition hover:-translate-y-0.5 sm:right-6"
+        className="fixed bottom-5 right-4 z-40 flex items-center gap-2.5 !rounded-full border border-[var(--line)] bg-[#121216]/95 py-1.5 pl-1.5 pr-4 shadow-2xl backdrop-blur transition hover:-translate-y-0.5 sm:right-6"
         aria-label="Falar com a Roberta"
       >
-        <span className="relative flex h-12 w-12 items-center justify-center overflow-hidden bg-[#1c1c22]">
-          <span className="font-display text-xl text-gold">R</span>
-          <span className="online-dot absolute bottom-1 right-1 h-2.5 w-2.5 rounded-full bg-emerald-400" />
+        <span className="relative h-11 w-11 overflow-hidden rounded-full">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/roberta-avatar.jpg"
+            alt="Roberta"
+            className="h-full w-full object-cover object-[center_18%]"
+          />
+          <span className="online-dot absolute bottom-0.5 right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#121216] bg-emerald-400" />
         </span>
         <span className="text-left">
-          <span className="block text-[10px] uppercase tracking-[0.18em] text-muted">
+          <span className="block text-[9px] uppercase tracking-[0.16em] text-muted">
             Atendimento
           </span>
           <span className="block text-sm font-semibold text-foreground">
@@ -181,33 +201,40 @@ export function RobertaChat() {
             aria-label="Fechar fundo"
             onClick={resetAndClose}
           />
-          <div className="relative z-10 flex h-[min(92vh,720px)] w-full max-w-lg flex-col overflow-hidden border border-[var(--line)] bg-[#0d0d10] shadow-2xl sm:h-[min(88vh,700px)]">
-            <header className="flex items-center gap-3 border-b border-[var(--line)] px-4 py-3">
-              <span className="relative flex h-11 w-11 items-center justify-center bg-[#1c1c22]">
-                <span className="font-display text-lg text-gold">R</span>
-                <span className="online-dot absolute bottom-0.5 right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold leading-tight">Roberta</p>
-                <p className="text-xs text-muted">Secretária · online</p>
-              </div>
+          <div className="relative z-10 flex h-[min(94vh,740px)] w-full max-w-md flex-col overflow-hidden rounded-t-3xl border border-[var(--line)] bg-[#0b141a] shadow-2xl sm:h-[min(88vh,700px)] sm:rounded-3xl">
+            <header className="flex items-center gap-3 bg-[#1f2c34] px-3 py-3">
               <button
                 type="button"
                 onClick={resetAndClose}
-                className="px-2 py-1 text-sm text-muted hover:text-foreground"
+                className="px-1 text-lg text-[#8696a0] hover:text-white"
                 aria-label="Fechar atendimento"
               >
-                Fechar
+                ←
               </button>
+              <span className="relative h-10 w-10 overflow-hidden rounded-full">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/images/roberta-avatar.jpg"
+                  alt="Roberta"
+                  className="h-full w-full object-cover object-[center_18%]"
+                />
+                <span className="online-dot absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-[#1f2c34] bg-emerald-400" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold leading-tight text-[#e9edef]">Roberta</p>
+                <p className="text-xs text-[#8696a0]">
+                  {busy ? "digitando…" : "Secretária · online"}
+                </p>
+              </div>
             </header>
 
             {phase === "consent" && (
-              <div className="flex flex-1 flex-col justify-center gap-5 px-6 py-8">
+              <div className="flex flex-1 flex-col justify-center gap-5 bg-[#0b141a] px-6 py-8">
                 <p className="eyebrow">Privacidade</p>
-                <h3 className="font-display text-3xl leading-tight">
+                <h3 className="font-display text-3xl leading-tight text-[#e9edef]">
                   Sua privacidade em primeiro lugar
                 </h3>
-                <p className="text-sm leading-relaxed text-muted">
+                <p className="text-sm leading-relaxed text-[#8696a0]">
                   Para o seu atendimento, vamos coletar o seu nome, WhatsApp e
                   algumas informações sobre o seu caso. Esses dados serão
                   utilizados apenas por {site.name} Advogado para entrar em
@@ -235,46 +262,49 @@ export function RobertaChat() {
 
             {phase !== "consent" && (
               <>
-                <div className="chat-scroll flex-1 space-y-3 overflow-y-auto px-4 py-5">
+                <div className="chat-scroll wa-surface flex-1 space-y-2 overflow-y-auto px-3 py-4">
+                  <p className="mb-2 text-center text-[10px] uppercase tracking-wider text-[#8696a0]">
+                    Hoje
+                  </p>
                   {messages.map((msg, i) => (
                     <div
                       key={`${msg.role}-${i}`}
                       className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                     >
                       <div
-                        className={`max-w-[85%] px-3.5 py-2.5 text-sm leading-relaxed ${
-                          msg.role === "user"
-                            ? "bg-[linear-gradient(135deg,#a8843d,#c5a059)] text-[#12100a]"
-                            : "border border-[var(--line)] bg-[#15151a] text-foreground"
+                        className={`max-w-[85%] px-3 py-2 text-sm leading-relaxed shadow-sm ${
+                          msg.role === "user" ? "wa-bubble-out" : "wa-bubble-in"
                         }`}
                       >
                         {msg.text}
+                        <span className="mt-1 block text-right text-[10px] opacity-60">
+                          {msg.time}
+                        </span>
                       </div>
                     </div>
                   ))}
-                  {busy && (
-                    <div className="text-xs tracking-wide text-muted">
-                      Roberta está digitando…
-                    </div>
-                  )}
+                  {busy && <TypingBubble />}
                   <div ref={bottomRef} />
                 </div>
 
                 {phase === "done" ? (
-                  <div className="border-t border-[var(--line)] p-4">
+                  <div className="border-t border-white/5 bg-[#1f2c34] p-4">
                     <a
                       href={whatsappLink(
-                        `Olá! Concluí o atendimento com a Roberta no site e gostaria de falar com o Dr. Carlos Mendes.\n\nNome: ${answers.nome || "-"}\nÁrea: ${answers.area || "-"}\nWhatsApp: ${answers.whatsapp || "-"}`,
+                        `Olá! Concluí o atendimento com a Roberta no site e gostaria de falar com o Dr. Carlos Mendes.\n\nNome: ${answers.nome || "-"}\nÁrea: ${answers.area || "-"}\nWhatsApp informado: ${answers.whatsapp || "-"}`,
                       )}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="btn-gold w-full"
+                      className="btn-whatsapp w-full"
                     >
-                      Continuar no {site.whatsapp ? "WhatsApp" : "e-mail"}
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                      </svg>
+                      Conversar no WhatsApp
                     </a>
                   </div>
                 ) : (
-                  <div className="border-t border-[var(--line)] p-3">
+                  <div className="border-t border-white/5 bg-[#1f2c34] p-3">
                     {showOptions ? (
                       <div className="mb-3 flex flex-wrap gap-2">
                         {current.options!.map((opt) => (
@@ -283,22 +313,22 @@ export function RobertaChat() {
                             type="button"
                             disabled={busy}
                             onClick={() => void submitAnswer(opt)}
-                            className="border border-[var(--line)] bg-[#15151a] px-3 py-2 text-left text-sm transition hover:border-gold hover:bg-[rgba(197,160,89,0.08)]"
+                            className="rounded-full border border-white/10 bg-[#2a3942] px-3 py-2 text-left text-sm text-[#e9edef] transition hover:border-gold hover:bg-[rgba(197,160,89,0.15)]"
                           >
                             {opt}
                           </button>
                         ))}
                       </div>
                     ) : null}
-                    <form onSubmit={onSubmit} className="flex gap-2">
+                    <form onSubmit={onSubmit} className="flex items-end gap-2">
                       {current?.type === "textarea" ? (
                         <textarea
                           value={input}
                           onChange={(e) => setInput(e.target.value)}
                           disabled={busy}
                           rows={2}
-                          placeholder={current.placeholder || "Sua resposta"}
-                          className="min-h-[44px] flex-1 resize-none border border-[var(--line)] bg-[#15151a] px-3 py-2 text-sm outline-none placeholder:text-muted focus:border-gold"
+                          placeholder={current.placeholder || "Mensagem"}
+                          className="min-h-[44px] flex-1 resize-none rounded-2xl border-0 bg-[#2a3942] px-4 py-2.5 text-sm text-[#e9edef] outline-none placeholder:text-[#8696a0]"
                         />
                       ) : (
                         <input
@@ -309,18 +339,20 @@ export function RobertaChat() {
                           placeholder={
                             showOptions
                               ? "Ou escolha uma opção acima"
-                              : current?.placeholder || "Sua resposta"
+                              : current?.placeholder || "Mensagem"
                           }
-                          className="h-11 flex-1 border border-[var(--line)] bg-[#15151a] px-3 text-sm outline-none placeholder:text-muted focus:border-gold disabled:opacity-60"
+                          className="h-11 flex-1 rounded-full border-0 bg-[#2a3942] px-4 text-sm text-[#e9edef] outline-none placeholder:text-[#8696a0] disabled:opacity-60"
                         />
                       )}
                       <button
                         type="submit"
-                        disabled={busy || (!input.trim() && current?.required !== false)}
-                        className="btn-gold h-11 shrink-0 px-4 disabled:opacity-50"
+                        disabled={
+                          busy || (!input.trim() && current?.required !== false)
+                        }
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#c5a059] text-[#12100a] disabled:opacity-50"
                         aria-label="Enviar resposta"
                       >
-                        Enviar
+                        ↑
                       </button>
                     </form>
                   </div>

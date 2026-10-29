@@ -3,16 +3,20 @@ export const site = {
   title: "Carlos Mendes Advogado",
   tagline: "Advocacia Trabalhista, Previdenciária e Imobiliária",
   email: "carlosmendesadv0@gmail.com",
-  /** Atualizar com o WhatsApp do cliente (somente dígitos com DDI). Ex: 5534999999999 */
-  whatsapp: "",
+  phoneDisplay: "(34) 8441-9956",
+  /** Somente dígitos com DDI */
+  whatsapp: "553484419956",
+  social: {
+    instagram:
+      "https://www.instagram.com/adv.carlosmendes?igsh=OTgxZjZvcm1tbWp6",
+    facebook:
+      "https://www.facebook.com/profile.php?id=61590414747882",
+  },
   oab: ["OAB/MG nº 174.882", "OAB/TO nº 13.548"],
   quote: "O que segue a justiça e a bondade achará a vida, a justiça e a honra. — Provérbios 21:21",
 };
 
 export function whatsappLink(message?: string) {
-  if (!site.whatsapp) {
-    return `mailto:${site.email}?subject=${encodeURIComponent("Atendimento — Carlos Mendes Advogado")}`;
-  }
   const text =
     message ??
     "Olá! Vim pelo site do Dr. Carlos Mendes e gostaria de falar sobre o meu caso.";

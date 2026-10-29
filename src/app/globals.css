@@ -11,6 +11,9 @@
   --gold-dim: #8a7038;
   --line: rgba(197, 160, 89, 0.22);
   --danger: #b91c1c;
+  --radius: 999px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
 }
 
 @theme inline {
@@ -67,7 +70,9 @@ body {
   color: #12100a;
   font-weight: 600;
   letter-spacing: 0.02em;
-  padding: 0.9rem 1.5rem;
+  padding: 0.9rem 1.7rem;
+  border: 0;
+  border-radius: 9999px !important;
   transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
   box-shadow: 0 10px 30px rgba(197, 160, 89, 0.18);
 }
@@ -85,7 +90,8 @@ body {
   gap: 0.5rem;
   border: 1px solid rgba(244, 241, 234, 0.28);
   color: var(--fg);
-  padding: 0.9rem 1.5rem;
+  padding: 0.9rem 1.7rem;
+  border-radius: 9999px !important;
   transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
 }
 
@@ -93,6 +99,34 @@ body {
   border-color: var(--gold);
   background: rgba(197, 160, 89, 0.08);
   transform: translateY(-2px);
+}
+
+.btn-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  background: #25d366;
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0.9rem 1.7rem;
+  border: 0;
+  border-radius: 9999px !important;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+  box-shadow: 0 10px 28px rgba(37, 211, 102, 0.28);
+}
+
+.btn-whatsapp:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+  box-shadow: 0 14px 34px rgba(37, 211, 102, 0.35);
+}
+
+button,
+a.btn-gold,
+a.btn-ghost {
+  border-radius: 9999px;
 }
 
 .section-pad {
@@ -105,6 +139,14 @@ body {
   letter-spacing: 0.22em;
   font-size: 0.72rem;
   font-weight: 600;
+}
+
+.dot-gold {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: var(--gold);
+  flex-shrink: 0;
 }
 
 .marquee {
@@ -151,6 +193,41 @@ body {
   }
 }
 
+@keyframes typing-bounce {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+  30% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
+@keyframes menu-slide {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes menu-link-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 .animate-fade-up {
   animation: fade-up 0.8s ease both;
 }
@@ -165,6 +242,44 @@ body {
 
 .online-dot {
   animation: pulse-dot 1.8s ease-in-out infinite;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.mobile-panel {
+  animation: menu-slide 0.28s ease both;
+}
+
+.mobile-link {
+  animation: menu-link-in 0.35s ease both;
+}
+
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #8696a0;
+  animation: typing-bounce 1.2s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.3s;
 }
 
 .chat-scroll::-webkit-scrollbar {
@@ -183,4 +298,40 @@ body {
 
 .faq-item[open] summary svg {
   transform: rotate(45deg);
+}
+
+/* WhatsApp-like chat surface */
+.wa-surface {
+  background:
+    linear-gradient(rgba(11, 20, 26, 0.92), rgba(11, 20, 26, 0.92)),
+    radial-gradient(circle at 20% 20%, rgba(197, 160, 89, 0.05), transparent 40%),
+    #0b141a;
+}
+
+.wa-bubble-in {
+  background: #1f2c34;
+  color: #e9edef;
+  border-radius: 0 12px 12px 12px;
+}
+
+.wa-bubble-out {
+  background: linear-gradient(135deg, #a8843d 0%, #c5a059 100%);
+  color: #12100a;
+  border-radius: 12px 0 12px 12px;
+}
+
+.phone-frame {
+  border-radius: 36px;
+  border: 3px solid #2a2a30;
+  background: #0a0a0c;
+  box-shadow:
+    0 0 0 1px rgba(197, 160, 89, 0.15),
+    0 30px 60px rgba(0, 0, 0, 0.55);
+}
+
+.phone-notch {
+  width: 98px;
+  height: 22px;
+  border-radius: 0 0 14px 14px;
+  background: #0a0a0c;
 }

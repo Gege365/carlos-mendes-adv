@@ -26,7 +26,7 @@ export function Hero() {
         <div className="hero-grain absolute inset-0 opacity-40 mix-blend-overlay" />
       </div>
 
-      <div className="relative mx-auto flex min-h-[100svh] max-w-7xl flex-col justify-end px-4 pb-16 pt-28 sm:justify-center sm:px-6 sm:pb-20 lg:px-8">
+      <div className="relative mx-auto flex min-h-[100svh] max-w-7xl flex-col justify-end px-4 pb-20 pt-28 sm:justify-center sm:px-6 sm:pb-24 lg:px-8">
         <div className="max-w-xl">
           <p className="eyebrow animate-fade-up mb-4">Carlos Mendes · Advogado</p>
           <h1 className="font-display animate-fade-up-delay text-[clamp(2.6rem,7vw,4.6rem)] leading-[0.95] tracking-tight">
@@ -41,28 +41,13 @@ export function Hero() {
           </p>
 
           <div className="animate-fade-up-delay-2 mt-8 flex flex-wrap gap-3">
-            <button type="button" onClick={openChat} className="btn-gold">
+            <button type="button" onClick={openChat} className="btn-gold rounded-full">
               Iniciar consultoria
             </button>
-            <a href="#atuacao" className="btn-ghost">
+            <a href="#atuacao" className="btn-ghost rounded-full">
               Conhecer atuação
             </a>
           </div>
-
-          <dl className="mt-10 grid max-w-lg grid-cols-3 gap-4 border-t border-[var(--line)] pt-6">
-            <div>
-              <dt className="font-display text-2xl text-gold sm:text-3xl">MG · TO</dt>
-              <dd className="mt-1 text-xs text-muted">OAB ativa</dd>
-            </div>
-            <div>
-              <dt className="font-display text-2xl text-gold sm:text-3xl">3</dt>
-              <dd className="mt-1 text-xs text-muted">áreas de foco</dd>
-            </div>
-            <div>
-              <dt className="font-display text-2xl text-gold sm:text-3xl">LGPD</dt>
-              <dd className="mt-1 text-xs text-muted">atendimento sigiloso</dd>
-            </div>
-          </dl>
         </div>
       </div>
 
