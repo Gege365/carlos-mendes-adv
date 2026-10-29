@@ -111,6 +111,16 @@ export function RobertaChat() {
 
   function resetAndClose() {
     closeChat();
+    // Reinicia o fluxo na próxima abertura
+    window.setTimeout(() => {
+      setPhase("consent");
+      setMessages([]);
+      setQIndex(0);
+      setAnswers({});
+      setInput("");
+      setBusy(false);
+      startedRef.current = false;
+    }, 250);
   }
 
   const current = robertaQuestions[qIndex];
